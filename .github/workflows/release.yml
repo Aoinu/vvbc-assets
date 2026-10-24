@@ -1,0 +1,50 @@
+name: Release package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Package repository
+        id: package
+        shell: bash
+        run: |
+          VERSION="$(python -c 'import json; print(json.load(open("package.json", encoding="utf-8"))["version"])')"
+          ARCHIVE="org.vvbc.assets-${VERSION}.zip"
+          python - "${ARCHIVE}" <<'PY'
+          from pathlib import Path
+          import sys
+          import zipfile
+
+          destination = Path(sys.argv[1])
+          with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
+              for path in sorted(Path(".").rglob("*")):
+                  if not path.is_file():
+                      continue
+                  relative_path = path.relative_to(Path("."))
+                  if ".git" in relative_path.parts or path == destination:
+                      continue
+                  archive.write(path, relative_path.as_posix())
+          PY
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="assets-${{ steps.package.outputs.version }}"
+          gh release create "${TAG}" \
+            "org.vvbc.assets-${{ steps.package.outputs.version }}.zip" \
+            package.json \
+            --title "${TAG}" \
+            --generate-notes

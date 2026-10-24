@@ -1,0 +1,11 @@
+{
+  "name": "org.vvbc.assets",
+  "displayName": "Virtual Venue Baseball Components - Assets",
+  "version": "0.0.1",
+  "unity": "2022.3",
+  "description": "Shared assets for Virtual Venue Baseball Components.",
+  "author": {
+    "name": "Aoinu",
+    "email": "aoinu607@gmail.com"
+  }
+}

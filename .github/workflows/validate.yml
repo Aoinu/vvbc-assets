@@ -1,0 +1,64 @@
+name: Validate package
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate package metadata and layout
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          root = Path(".")
+          errors = []
+          package_file = root / "package.json"
+          if not package_file.is_file():
+              errors.append("package.json is missing")
+              package = {}
+          else:
+              try:
+                  package = json.loads(package_file.read_text(encoding="utf-8"))
+              except (OSError, json.JSONDecodeError) as error:
+                  errors.append(f"package.json is not valid JSON: {error}")
+                  package = {}
+
+          semver_pattern = re.compile(
+              r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+              r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)"
+              r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
+              r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+          )
+          if package.get("name") != "org.vvbc.assets":
+              errors.append("package.json name must be org.vvbc.assets")
+          version = package.get("version")
+          if not isinstance(version, str) or not semver_pattern.fullmatch(version):
+              errors.append("package.json version must be SemVer")
+          if package.get("unity") != "2022.3":
+              errors.append("package.json unity must be 2022.3")
+
+          for required_file in ("README.md", "CHANGELOG.md", ".gitattributes"):
+              if not (root / required_file).is_file():
+                  errors.append(f"{required_file} is missing")
+
+          for forbidden_directory in ("Assets", "Packages", "ProjectSettings", "UserSettings"):
+              if (root / forbidden_directory).exists():
+                  errors.append(f"Unity project directory is not allowed: {forbidden_directory}/")
+
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print("Package metadata and package-only layout are valid.")
+          PY
