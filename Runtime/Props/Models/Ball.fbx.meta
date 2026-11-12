@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: MT_Ball
+    second: {fileID: 2100000, guid: 20694e5e1d1aae04e9301241e8e4a414, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: MT_Ball_Unity
     second: {fileID: 2100000, guid: 20694e5e1d1aae04e9301241e8e4a414, type: 2}
   materials:
