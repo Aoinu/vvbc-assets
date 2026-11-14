@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Field Lines _ white chalk
-    second: {fileID: 2100000, guid: 4088120c916def14e9656b05585d37ff, type: 2}
+    second: {fileID: 2100000, guid: 28ef68dbe37a4274e90d91c2578cf88f, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
